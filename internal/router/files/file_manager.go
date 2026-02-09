@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mundotv789123/raspadmin/config"
+	"github.com/mundotv789123/raspadmin/internal/config"
 )
 
 type FileInfo struct {

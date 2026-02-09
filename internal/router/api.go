@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mundotv789123/raspadmin/router/files"
+	"github.com/mundotv789123/raspadmin/internal/router/files"
 )
 
 func Index(c *gin.Context) {

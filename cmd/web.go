@@ -4,8 +4,8 @@ import (
 	ctx "context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mundotv789123/raspadmin/config"
-	raroute "github.com/mundotv789123/raspadmin/router"
+	"github.com/mundotv789123/raspadmin/internal/config"
+	"github.com/mundotv789123/raspadmin/internal/router"
 	"github.com/urfave/cli/v3"
 )
 
@@ -16,15 +16,15 @@ var webCommand = cli.Command{
 }
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
-	router := gin.Default()
+	r := gin.Default()
 
-	router.Use(corsMiddleware())
+	r.Use(corsMiddleware())
 
-	apiRouter := router.Group("/api")
-	apiRouter.GET("", raroute.Index)
-	apiRouter.GET("files", raroute.Files)
+	apiRouter := r.Group("/api")
+	apiRouter.GET("", router.Index)
+	apiRouter.GET("files", router.Files)
 
-	router.Run()
+	r.Run()
 	return nil
 }
 
