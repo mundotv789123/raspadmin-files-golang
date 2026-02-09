@@ -1,16 +1,11 @@
 package main
 
 import (
-	"log"
-
-	"github.com/joho/godotenv"
 	"github.com/mundotv789123/raspadmin/cmd"
+	"github.com/mundotv789123/raspadmin/config"
 )
 
 func main() {
-	envFile := ".env"
-	if err := godotenv.Load(envFile); err != nil {
-		log.Print("Error loading .env file: ", err)
-	}
+	config.Init()
 	cmd.Run()
 }

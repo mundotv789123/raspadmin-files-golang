@@ -15,6 +15,7 @@ func Run() {
 		Commands: []*cli.Command{
 			&webCommand,
 		},
+		DefaultCommand: webCommand.Name,
 	}
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		os.Exit(1)
