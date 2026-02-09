@@ -16,7 +16,11 @@ var webCommand = cli.Command{
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
 	router := gin.Default()
-	router.GET("/api", raroute.Index)
+
+	apiRouter := router.Group("/api")
+	apiRouter.GET("", raroute.Index)
+	apiRouter.GET("files", raroute.Files)
+
 	router.Run()
 	return nil
 }
