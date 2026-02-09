@@ -2,8 +2,9 @@ package cmd
 
 import (
 	ctx "context"
-	"fmt"
 
+	"github.com/gin-gonic/gin"
+	raroute "github.com/mundotv789123/raspadmin/router"
 	"github.com/urfave/cli/v3"
 )
 
@@ -14,6 +15,8 @@ var webCommand = cli.Command{
 }
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
-	fmt.Println("Starting web server...")
+	router := gin.Default()
+	router.GET("/api", raroute.Index)
+	router.Run()
 	return nil
 }
