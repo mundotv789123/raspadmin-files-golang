@@ -20,3 +20,14 @@ func Files(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"files": files})
 }
+
+func OpenFile(c *gin.Context) {
+	file, err := files.OpenFile(c.Query("path"))
+	if err != nil {
+		c.JSON(404, gin.H{"message": err.Error()})
+		return
+	}
+	defer file.Close()
+
+	c.File(file.Name())
+}
