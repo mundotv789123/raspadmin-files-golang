@@ -24,9 +24,18 @@ func OpenDbConnection() (*gorm.DB, error) {
 }
 
 func runMigrations(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.File{})
-	if err != nil {
-		return err
+	migrations := []interface{}{
+		&models.File{},
+		&models.Diretory{},
+		&models.User{},
 	}
+
+	for _, model := range migrations {
+		err := db.AutoMigrate(model)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

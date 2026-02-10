@@ -26,10 +26,8 @@ func runWeb(_ ctx.Context, cmd *cli.Command) error {
 
 	r.Use(corsMiddleware())
 
-	apiRouter := r.Group("/api")
-	apiRouter.GET("", router.Index)
-	apiRouter.GET("files", router.Files)
-	apiRouter.GET("files/open", router.OpenFile)
+	webCtx := &router.WebContext{DB: database.DB}
+	webCtx.Routers(r)
 
 	r.Run()
 	return nil

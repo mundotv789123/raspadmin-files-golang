@@ -3,33 +3,49 @@ package files
 import (
 	"errors"
 	"fmt"
+	"mime"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/mundotv789123/raspadmin/internal/config"
+	"github.com/mundotv789123/raspadmin/internal/database/models"
+	"gorm.io/gorm"
 )
 
 var hiddenFilesRegex = regexp.MustCompile("^[\\._].*$")
 
-type FileInfo struct {
-	Name  string `json:"name"`
-	IsDir bool   `json:"is_dir"`
-	Path  string `json:"path"`
-	Open  bool   `json:"open,omitempty"`
+type FileDto struct {
+	Name      string    `json:"name"`
+	IsDir     bool      `json:"is_dir"`
+	Path      string    `json:"path"`
+	Type      string    `json:"type,omitempty"`
+	Icon      string    `json:"icon,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	Open      bool      `json:"open,omitempty"`
 }
 
-type FileContent interface {
-	Name() string
-	IsDir() bool
-}
-
-func NewFileInfo(file FileContent, path string, open bool) FileInfo {
-	return FileInfo{
-		Name:  file.Name(),
-		IsDir: file.IsDir(),
-		Path:  path,
+func NewFileInfo(file os.FileInfo, path string, open bool, iconPath string) FileDto {
+	var createdAt time.Time
+	if runtime.GOOS == "linux" {
+		stat := file.Sys().(*syscall.Stat_t)
+		createdAt = time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
+	}
+	contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
+	return FileDto{
+		Name:      file.Name(),
+		IsDir:     file.IsDir(),
+		Path:      path,
+		Type:      contentType,
+		Icon:      iconPath,
+		CreatedAt: createdAt,
+		UpdatedAt: file.ModTime(),
+		Open:      open,
 	}
 }
 
@@ -37,7 +53,7 @@ var (
 	ErrFileNotFound = errors.New("File or directory not found")
 )
 
-func GetFiles(path string) ([]FileInfo, error) {
+func GetFiles(path string, db *gorm.DB) ([]FileDto, error) {
 	path, err := safeJoin(path)
 	if err != nil {
 		return nil, ErrFileNotFound
@@ -53,18 +69,39 @@ func GetFiles(path string) ([]FileInfo, error) {
 	}
 
 	if !fileState.IsDir() {
-		return []FileInfo{NewFileInfo(fileState, path, true)}, nil
+		fileState.ModTime()
+		return []FileDto{NewFileInfo(fileState, path, true, "")}, nil
 	}
 
 	files, err := os.ReadDir(path)
-	filesList := make([]FileInfo, len(files))
-	for i, file := range files {
+	filesList := make([]FileDto, 0)
+	parentPath := path[len(config.AbsRootDir):]
+
+	filesDb, err := getDbFiles(db, parentPath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
 		if hiddenFilesRegex.MatchString(file.Name()) {
 			continue
 		}
-		filePath := filepath.Join(path, file.Name())[len(config.AbsRootDir):]
-		filesList[i] = NewFileInfo(file, filePath, false)
+
+		fileState, err := file.Info()
+		if err != nil {
+			continue
+		}
+
+		fileDb, ok := filesDb[file.Name()]
+		var fileIcon string
+		if ok {
+			fileIcon = fileDb.IconPath
+		}
+
+		filePath := filepath.Join(parentPath, file.Name())
+		filesList = append(filesList, NewFileInfo(fileState, filePath, false, fileIcon))
 	}
+
 	return filesList, nil
 }
 
@@ -82,6 +119,21 @@ func safeJoin(userInput string) (string, error) {
 	}
 
 	return absFullPath, nil
+}
+
+func getDbFiles(db *gorm.DB, parentPath string) (map[string]models.File, error) {
+	var files []models.File
+	err := db.Where("parent_path = ?", parentPath).Find(&files).Error
+	if err != nil {
+		return nil, err
+	}
+
+	filesMap := make(map[string]models.File)
+	for _, file := range files {
+		filesMap[file.Name] = file
+	}
+
+	return filesMap, nil
 }
 
 func OpenFile(path string) (*os.File, error) {

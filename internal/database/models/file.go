@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type File struct {
 	Id uint `gorm:"primaryKey;column:id"`
 
@@ -14,8 +16,8 @@ type File struct {
 	FilePath   string `gorm:"not null;column:file_path;uniqueIndex"`
 	ParentPath string `gorm:"column:parent_path"`
 
-	UpdatedAt int64 `gorm:"column:updated_at"`
-	CreatedAt int64 `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
+	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
 func NewFile(name string, filePath string, parentPath string) *File {
