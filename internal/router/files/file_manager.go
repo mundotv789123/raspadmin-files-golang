@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/mundotv789123/raspadmin/internal/config"
 )
+
+var hiddenFilesRegex = regexp.MustCompile("^[\\._].*$")
 
 type FileInfo struct {
 	Name  string `json:"name"`
@@ -56,6 +59,9 @@ func GetFiles(path string) ([]FileInfo, error) {
 	files, err := os.ReadDir(path)
 	filesList := make([]FileInfo, len(files))
 	for i, file := range files {
+		if hiddenFilesRegex.MatchString(file.Name()) {
+			continue
+		}
 		filePath := filepath.Join(path, file.Name())[len(config.AbsRootDir):]
 		filesList[i] = NewFileInfo(file, filePath, false)
 	}
@@ -63,7 +69,7 @@ func GetFiles(path string) ([]FileInfo, error) {
 }
 
 func safeJoin(userInput string) (string, error) {
-	fullPath := filepath.Join(config.RootDir, userInput)
+	fullPath := filepath.Join(config.AbsRootDir, userInput)
 	cleanedPath := filepath.Clean(fullPath)
 	absFullPath, err := filepath.Abs(cleanedPath)
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/config"
+	"github.com/mundotv789123/raspadmin/internal/database"
 	"github.com/mundotv789123/raspadmin/internal/router"
 	"github.com/urfave/cli/v3"
 )
@@ -16,6 +17,11 @@ var webCommand = cli.Command{
 }
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
+	_, err := database.OpenDbConnection()
+	if err != nil {
+		return err
+	}
+
 	r := gin.Default()
 
 	r.Use(corsMiddleware())

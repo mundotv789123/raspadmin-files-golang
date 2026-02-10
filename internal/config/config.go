@@ -10,10 +10,7 @@ import (
 )
 
 var (
-	RootDir    string
-	AbsRootDir string
-
-	OriginsString  string
+	AbsRootDir     string
 	AllowedOrigins []string
 )
 
@@ -27,17 +24,17 @@ func loadRootDir() {
 		log.Print("Error loading .env file: ", err)
 	}
 
-	RootDir = os.Getenv("FILES_PATH")
-	if RootDir == "" {
-		RootDir = "./files"
+	rootDir := os.Getenv("FILES_PATH")
+	if rootDir == "" {
+		rootDir = "./files"
 	}
-	AbsRootDir, _ = filepath.Abs(RootDir)
+	AbsRootDir, _ = filepath.Abs(rootDir)
 }
 
 func loadCors() {
-	OriginsString = os.Getenv("ALLOWED_ORIGINS")
-	if OriginsString != "" {
-		OriginsString = "http://localhost:3000"
+	originsString := os.Getenv("ALLOWED_ORIGINS")
+	if originsString == "" {
+		originsString = "http://localhost:3000"
 	}
-	AllowedOrigins = strings.Split(OriginsString, ",")
+	AllowedOrigins = strings.Split(originsString, ",")
 }
