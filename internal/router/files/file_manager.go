@@ -95,7 +95,7 @@ func GetFiles(path string, db *gorm.DB) ([]FileDto, error) {
 		fileDb, ok := filesDb[file.Name()]
 		var fileIcon string
 		if ok {
-			fileIcon = fileDb.IconPath
+			fileIcon = *fileDb.IconPath
 		}
 
 		filePath := filepath.Join(parentPath, file.Name())
