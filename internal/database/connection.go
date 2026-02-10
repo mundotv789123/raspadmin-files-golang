@@ -1,8 +1,8 @@
 package database
 
 import (
+	"github.com/glebarez/sqlite"
 	"github.com/mundotv789123/raspadmin/internal/database/models"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
