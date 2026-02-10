@@ -7,7 +7,7 @@ import (
 
 func Index(c *gin.Context) {
 	respose := gin.H{
-		"message": "Hello, World!",
+		"message": "ping",
 	}
 	c.JSON(200, respose)
 }

@@ -11,10 +11,11 @@ RUN go mod download
 COPY . .
 
 ENV GOOS=linux
-ENV GOARCH=amd64
 RUN go build -ldflags="-s -w" -o build/raspadmin_amd64 main.go
 
 FROM alpine:latest
+
+ENV GIN_MODE=release
 
 WORKDIR /app
 
