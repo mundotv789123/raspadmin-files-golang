@@ -18,12 +18,16 @@ func Index(c *gin.Context) {
 }
 
 func (ctx *WebContext) Files(c *gin.Context) {
-	files, err := files.GetFiles(c.Query("path"), ctx.DB)
+	filesResult, err := files.GetFiles(c.Query("path"), ctx.DB)
 	if err != nil {
-		c.JSON(404, gin.H{"message": err.Error()})
+		if err == files.ErrFileNotFound {
+			c.JSON(404, gin.H{"message": "File or directory not found"})
+			return
+		}
+		c.JSON(500, gin.H{"message": "Internal server error"})
 		return
 	}
-	c.JSON(200, gin.H{"files": files})
+	c.JSON(200, gin.H{"files": filesResult})
 }
 
 func OpenFile(c *gin.Context) {

@@ -7,14 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/mundotv789123/raspadmin/internal/config"
 	"github.com/mundotv789123/raspadmin/internal/database/models"
 	"gorm.io/gorm"
+
+	"github.com/djherbis/times"
 )
 
 var hiddenFilesRegex = regexp.MustCompile("^[\\._].*$")
@@ -30,21 +30,26 @@ type FileDto struct {
 	Open      bool      `json:"open,omitempty"`
 }
 
-func NewFileInfo(file os.FileInfo, path string, open bool, iconPath string) FileDto {
-	var createdAt time.Time
-	if runtime.GOOS == "linux" {
-		stat := file.Sys().(*syscall.Stat_t)
-		createdAt = time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
-	}
+func NewFileDto(file os.FileInfo, path string, open bool, iconPath string, fullPath string) FileDto {
 	contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
+
+	var createdAt time.Time
+	var updatedAt time.Time
+	t, err := times.Stat(fullPath)
+	if err == nil {
+		createdAt = t.BirthTime()
+		updatedAt = t.ModTime()
+	}
+
 	return FileDto{
-		Name:      file.Name(),
-		IsDir:     file.IsDir(),
-		Path:      path,
-		Type:      contentType,
-		Icon:      iconPath,
-		CreatedAt: createdAt,
-		UpdatedAt: file.ModTime(),
+		Name:  file.Name(),
+		IsDir: file.IsDir(),
+		Path:  path,
+		Type:  contentType,
+		Icon:  iconPath,
+		/* A versão original em java está retornando invertido, ajustar a versão golang assim que a versão java for ajustado */
+		CreatedAt: updatedAt,
+		UpdatedAt: createdAt,
 		Open:      open,
 	}
 }
@@ -69,8 +74,8 @@ func GetFiles(path string, db *gorm.DB) ([]FileDto, error) {
 	}
 
 	if !fileState.IsDir() {
-		fileState.ModTime()
-		return []FileDto{NewFileInfo(fileState, path, true, "")}, nil
+		filePath := path[len(config.AbsRootDir):]
+		return []FileDto{NewFileDto(fileState, filePath, true, "", path)}, nil
 	}
 
 	files, err := os.ReadDir(path)
@@ -99,7 +104,14 @@ func GetFiles(path string, db *gorm.DB) ([]FileDto, error) {
 		}
 
 		filePath := filepath.Join(parentPath, file.Name())
-		filesList = append(filesList, NewFileInfo(fileState, filePath, false, fileIcon))
+		fileDto := NewFileDto(
+			fileState,
+			filePath,
+			false,
+			fileIcon,
+			filepath.Join(config.AbsRootDir, filePath),
+		)
+		filesList = append(filesList, fileDto)
 	}
 
 	return filesList, nil

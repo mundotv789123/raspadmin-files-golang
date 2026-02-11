@@ -1,11 +1,8 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-RUN apk update && apk add make
-
 COPY go.mod go.sum ./
-
 RUN go mod download
 
 COPY . .
@@ -13,7 +10,7 @@ COPY . .
 ENV GOOS=linux
 RUN go build -ldflags="-s -w" -o build/raspadmin main.go
 
-FROM alpine:latest
+FROM alpine:3.23
 
 ENV GIN_MODE=release
 
