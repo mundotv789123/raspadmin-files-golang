@@ -79,6 +79,9 @@ func GetFiles(path string, db *gorm.DB) ([]FileDto, error) {
 	}
 
 	files, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
 	filesList := make([]FileDto, 0)
 	parentPath := path[len(config.AbsRootDir):]
 

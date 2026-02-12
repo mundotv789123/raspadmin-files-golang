@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mundotv789123/raspadmin/internal/router/auth"
 	"github.com/mundotv789123/raspadmin/internal/router/files"
 	"gorm.io/gorm"
 )
@@ -43,7 +44,14 @@ func OpenFile(c *gin.Context) {
 
 func (ctx *WebContext) Routers(r *gin.Engine) {
 	apiRouter := r.Group("/api")
+
 	apiRouter.GET("", Index)
-	apiRouter.GET("files", ctx.Files)
-	apiRouter.GET("files/open", OpenFile)
+
+	filesRouter := apiRouter.Group("/files")
+	filesRouter.Use(auth.AuthenticationMiddleware)
+	filesRouter.GET("", ctx.Files)
+	filesRouter.GET("open", OpenFile)
+
+	authRouter := apiRouter.Group("/auth")
+	authRouter.POST("/login", auth.AuthLogin)
 }

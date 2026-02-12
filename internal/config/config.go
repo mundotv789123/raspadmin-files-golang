@@ -6,17 +6,25 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
 var (
 	AbsRootDir     string
 	AllowedOrigins []string
+
+	JwtSecret string
+
+	AuthEnabled bool
+	AppUsername string
+	AppPassword string
 )
 
 func Init() {
 	loadRootDir()
 	loadCors()
+	loadAuth()
 }
 
 func loadRootDir() {
@@ -37,4 +45,28 @@ func loadCors() {
 		originsString = "http://localhost:3000"
 	}
 	AllowedOrigins = strings.Split(originsString, ",")
+}
+
+func loadAuth() {
+	authEnabledEnv := os.Getenv("AUTH_ENABLED")
+	AuthEnabled = authEnabledEnv == "true"
+
+	if !AuthEnabled {
+		return
+	}
+
+	JwtSecret = os.Getenv("JWT_SECRET")
+	if JwtSecret == "" {
+		JwtSecret = uuid.New().String()
+	}
+
+	AppUsername = os.Getenv("APP_USERNAME")
+	if AppUsername == "" {
+		AppUsername = "admin"
+	}
+
+	AppPassword = os.Getenv("APP_PASSWORD")
+	if AppPassword == "" {
+		AppPassword = "admin"
+	}
 }
