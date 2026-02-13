@@ -42,14 +42,13 @@ func NewFileDto(file os.FileInfo, path string, open bool, iconPath string, fullP
 	}
 
 	return FileDto{
-		Name:  file.Name(),
-		IsDir: file.IsDir(),
-		Path:  "/" + path,
-		Type:  contentType,
-		Icon:  iconPath,
-		/* A versão original em java está retornando invertido, ajustar a versão golang assim que a versão java for ajustado */
-		CreatedAt: updatedAt,
-		UpdatedAt: createdAt,
+		Name:      file.Name(),
+		IsDir:     file.IsDir(),
+		Path:      "/" + path,
+		Type:      contentType,
+		Icon:      iconPath,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 		Open:      open,
 	}
 }
