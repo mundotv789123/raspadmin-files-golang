@@ -42,6 +42,10 @@ func OpenFile(c *gin.Context) {
 	c.File(file.Name())
 }
 
+func (ctx *WebContext) AuthLogin(c *gin.Context) {
+	auth.AuthLogin(c, ctx.DB)
+}
+
 func (ctx *WebContext) Routers(r *gin.Engine) {
 	apiRouter := r.Group("/api")
 
@@ -53,5 +57,5 @@ func (ctx *WebContext) Routers(r *gin.Engine) {
 	filesRouter.GET("open", OpenFile)
 
 	authRouter := apiRouter.Group("/auth")
-	authRouter.POST("/login", auth.AuthLogin)
+	authRouter.POST("/login", ctx.AuthLogin)
 }

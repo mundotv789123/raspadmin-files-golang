@@ -29,6 +29,7 @@ func runMigrations(db *gorm.DB) error {
 		&models.File{},
 		&models.Diretory{},
 		&models.User{},
+		&models.UserSession{},
 	}
 
 	for _, model := range migrations {
