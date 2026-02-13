@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type File struct {
 	Id uint `gorm:"primaryKey;column:id"`
 
@@ -16,10 +14,8 @@ type File struct {
 	FilePath   string  `gorm:"not null;column:file_path;uniqueIndex"`
 	ParentPath *string `gorm:"column:parent_path"`
 
-	UpdatedAt     *time.Time `gorm:"-"`
-	UpdatedAtUnix int64      `gorm:"column:updated_at;autoCreateTime"`
-	CreatedAt     *time.Time `gorm:"-"`
-	CreatedAtUnix int64      `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAtUnix int64 `gorm:"column:updated_at;autoCreateTime"`
+	CreatedAtUnix int64 `gorm:"column:created_at;autoCreateTime"`
 }
 
 func NewFile(name string, filePath string, parentPath *string) *File {
@@ -31,12 +27,12 @@ func NewFile(name string, filePath string, parentPath *string) *File {
 	}
 }
 
-func SetGenerateIcon(file *File) {
+func (file *File) SetGenerateIcon() {
 	file.GenerateIcon = true
 	file.IconPath = nil
 }
 
-func SetIconPath(file *File, iconPath *string) {
+func (file *File) SetIconPath(iconPath *string) {
 	file.IconPath = iconPath
 	file.GenerateIcon = false
 }
