@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/glebarez/sqlite"
-	"github.com/mundotv789123/raspadmin/internal/database/models"
+	"github.com/mundotv789123/raspadmin/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +25,8 @@ func OpenDbConnection() (*gorm.DB, error) {
 }
 
 func runMigrations(db *gorm.DB) error {
-	migrations := []interface{}{
+	migrations := []any{
 		&models.File{},
-		&models.Diretory{},
-		&models.User{},
 		&models.UserSession{},
 	}
 

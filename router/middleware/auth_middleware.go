@@ -1,10 +1,11 @@
-package auth
+package middleware
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/config"
+	"github.com/mundotv789123/raspadmin/internal/jwt"
 )
 
 func AuthenticationMiddleware(c *gin.Context) {
@@ -20,7 +21,7 @@ func AuthenticationMiddleware(c *gin.Context) {
 		return
 	}
 
-	_, err := DecodeJwtToken(tokenString)
+	_, err := jwt.DecodeJwtToken(tokenString)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid token"})

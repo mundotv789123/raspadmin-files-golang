@@ -1,10 +1,15 @@
 package router
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
-	"github.com/mundotv789123/raspadmin/internal/router/auth"
-	"github.com/mundotv789123/raspadmin/internal/router/files"
+	"github.com/mundotv789123/raspadmin/router/middleware"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrInternalServerError = errors.New("Internal server error")
 )
 
 type WebContext struct {
@@ -19,40 +24,31 @@ func Index(c *gin.Context) {
 }
 
 func (ctx *WebContext) Files(c *gin.Context) {
-	filesResult, err := files.GetFiles(c.Query("path"), ctx.DB)
+	filesResult, err := GetFiles(c.Query("path"), ctx.DB)
 	if err != nil {
-		if err == files.ErrFileNotFound {
-			c.JSON(404, gin.H{"message": "File or directory not found"})
+		if err == ErrFileNotFound {
+			c.JSON(404, gin.H{"message": ErrFileNotFound})
 			return
 		}
-		c.JSON(500, gin.H{"message": "Internal server error"})
+		c.JSON(500, gin.H{"message": ErrInternalServerError})
 		return
 	}
 	c.JSON(200, gin.H{"files": filesResult})
 }
 
-func OpenFile(c *gin.Context) {
-	file, err := files.OpenFile(c.Query("path"))
-	if err != nil {
-		c.JSON(404, gin.H{"message": err.Error()})
-		return
-	}
-	defer file.Close()
-
-	c.File(file.Name())
-}
-
 func (ctx *WebContext) AuthLogin(c *gin.Context) {
-	auth.AuthLogin(c, ctx.DB)
+	AuthLogin(c, ctx.DB)
 }
 
 func (ctx *WebContext) Routers(r *gin.Engine) {
+	r.Use(middleware.CorsMiddleware())
+
 	apiRouter := r.Group("/api")
 
 	apiRouter.GET("", Index)
 
 	filesRouter := apiRouter.Group("/files")
-	filesRouter.Use(auth.AuthenticationMiddleware)
+	filesRouter.Use(middleware.AuthenticationMiddleware)
 	filesRouter.GET("", ctx.Files)
 	filesRouter.GET("open", OpenFile)
 
