@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    image: ghcr.io/mundotv789123/raspadmin-files-golang:latest
     ports:
       - "8080:8080"
     volumes:

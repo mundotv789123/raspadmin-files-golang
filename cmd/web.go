@@ -26,6 +26,5 @@ func runWeb(_ ctx.Context, cmd *cli.Command) error {
 	webCtx := &router.WebContext{DB: database.DB}
 	webCtx.Routers(r)
 
-	r.Run()
-	return nil
+	return r.Run("0.0.0.0:8080")
 }

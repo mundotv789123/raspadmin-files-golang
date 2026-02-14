@@ -124,9 +124,11 @@ func doGenerateIcon(fileEntity *models.File, fullPath string, db *gorm.DB) (bool
 	createdAt = int64(t.BirthTime().Unix())
 	updatedAt = int64(t.ModTime().Unix())
 
-	info, err := os.Stat(filepath.Join(config.AbsRootDir, *fileEntity.IconPath))
-	if errors.Is(err, os.ErrNotExist) || info == nil {
-		fileEntity.IconPath = nil
+	if fileEntity.IconPath != nil {
+		info, err := os.Stat(filepath.Join(config.AbsRootDir, *fileEntity.IconPath))
+		if errors.Is(err, os.ErrNotExist) || info == nil {
+			fileEntity.IconPath = nil
+		}
 	}
 
 	if fileEntity.IconPath != nil && fileEntity.CreatedAtUnix == createdAt && fileEntity.UpdatedAtUnix == updatedAt {

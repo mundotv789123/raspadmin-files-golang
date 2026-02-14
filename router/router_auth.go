@@ -34,6 +34,7 @@ const expireInSeconds = 15 * 60
 
 func AuthLogin(c *gin.Context, db *gorm.DB) {
 	if !config.AuthEnabled {
+		c.JSON(400, gin.H{"message": "Authentication disabled"})
 		return
 	}
 
@@ -143,7 +144,7 @@ func loginRefreshToken(loginReq LoginRequest, db *gorm.DB) (*models.UserSession,
 	}
 	var session models.UserSession
 	err = db.Where("refresh_token = ? AND expire_at > ?", refreshToken, int(time.Now().Unix())).First(&session).Error
-	if err != nil {
+	if err != nil || &session == nil {
 		return nil, ErrInvalidToken
 	}
 	return &session, nil
