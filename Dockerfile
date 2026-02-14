@@ -12,6 +12,8 @@ RUN go build -ldflags="-s -w" -o build/raspadmin main.go
 
 FROM alpine:3.23
 
+RUN apk update && apk add ffmpeg ffmpegthumbnailer
+
 ENV GIN_MODE=release
 
 WORKDIR /app
