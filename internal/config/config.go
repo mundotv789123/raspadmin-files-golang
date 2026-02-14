@@ -19,12 +19,15 @@ var (
 	AuthEnabled bool
 	AppUsername string
 	AppPassword string
+
+	CacheDir string
 )
 
 func Init() {
 	loadRootDir()
 	loadCors()
 	loadAuth()
+	loadCache()
 }
 
 func loadRootDir() {
@@ -68,5 +71,12 @@ func loadAuth() {
 	AppPassword = os.Getenv("APP_PASSWORD")
 	if AppPassword == "" {
 		AppPassword = "admin"
+	}
+}
+
+func loadCache() {
+	CacheDir = os.Getenv("CACHE_DIR")
+	if CacheDir == "" {
+		CacheDir = "_cache"
 	}
 }

@@ -1,10 +1,27 @@
 package generator
 
-import "fmt"
+import (
+	"os/exec"
+)
 
-type IconEmbedGenerator struct{}
+type IconEmbedGenerator struct {
+	next IconGenerator
+}
 
-func (g *IconEmbedGenerator) Generate(filePath string, iconPath string) error {
-	fmt.Println("Gerado ícone de embed para:", filePath, "salvando em:", iconPath)
-	return nil
+func (g *IconEmbedGenerator) Generate(filePath string, iconPath string) (bool, error) {
+	cmd := exec.Command("ffmpeg", "-i", filePath, "-map", "0:v", "-map", "-0:V", "-c", "copy", iconPath)
+	err := cmd.Run()
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (g *IconEmbedGenerator) SetNext(next IconGenerator) {
+	g.next = next
+}
+
+func NewIconEmbedGenerator() *IconEmbedGenerator {
+	return &IconEmbedGenerator{}
 }

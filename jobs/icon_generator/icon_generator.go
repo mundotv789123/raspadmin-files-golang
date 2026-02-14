@@ -1,24 +1,20 @@
 package icongenerator
 
 import (
+	"errors"
 	"fmt"
 	"mime"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/djherbis/times"
+	"github.com/google/uuid"
 	"github.com/mundotv789123/raspadmin/internal/config"
 	"github.com/mundotv789123/raspadmin/internal/database"
 	"github.com/mundotv789123/raspadmin/internal/models"
 	"github.com/mundotv789123/raspadmin/jobs/icon_generator/generator"
 	"github.com/mundotv789123/raspadmin/repository"
 	"gorm.io/gorm"
-)
-
-var (
-	videoTypeRegex = regexp.MustCompile(`^video/(mp4|mkv|webm)$`)
-	audioTypeRegex = regexp.MustCompile(`^audio/(mpeg)$`)
 )
 
 func RunGenerator() error {
@@ -45,7 +41,7 @@ func processFile(path string, db *gorm.DB) error {
 		if file.IsDir() {
 			dirs = append(dirs, filePath)
 			err := processFile(fullPath, db)
-			println("Processado diretório:", filePath)
+
 			if err != nil {
 				return err
 			}
@@ -55,14 +51,17 @@ func processFile(path string, db *gorm.DB) error {
 		fileEntity, exists := filesDb[file.Name()]
 		if !exists {
 			fileEntity = *models.NewFile(file.Name(), filePath, &parentPath)
+		} else {
+			delete(filesDb, file.Name())
 		}
+
 		err := db.Save(&fileEntity).Error
 		if err != nil {
 			return err
 		}
 
 		contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
-		generator, ok := getGenerator(contentType)
+		gen, ok := generator.GetGenerator(contentType)
 		if !ok {
 			continue
 		}
@@ -75,28 +74,39 @@ func processFile(path string, db *gorm.DB) error {
 		if !ok {
 			continue
 		}
-		iconPath := "" //TODO: definir extensão correta, se já existir uma imagem no banco, sobescreva
-		err = generateIcon(fullPath, iconPath, generator)
+		if fileEntity.IconPath == nil {
+			iconPath := fmt.Sprintf("%s/_%s.jpg", config.CacheDir, uuid.New().String())
+			fileEntity.IconPath = &iconPath
+		}
+
+		iconFullPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
+		ok, err = generator.GenerateIcon(fullPath, iconFullPath, gen)
+
 		if err != nil {
 			return err
 		}
-		fileEntity.SetIconPath(&iconPath)
+		if !ok {
+			continue
+		}
+		fileEntity.SetIconPath(fileEntity.IconPath)
 
-		// TODO: salvar dados após confirmar geração de icone
-		// err = db.Save(&fileEntity).Error
-		// if err != nil {
-		// 	return err
-		// }
-		delete(filesDb, file.Name())
+		err = db.Save(&fileEntity).Error
+		if err != nil {
+			return err
+		}
 	}
 	for _, fileEntity := range filesDb {
-		fmt.Printf("Arquivo removido do sistema: %s\n", fileEntity.FilePath)
-		// TODO: implementar remoção do arquivo do banco de dados
-		// ignorar pasta de cache
-		// apagar icone da pasta de cache
+		if fileEntity.IconPath != nil {
+			fileIconPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
+			err := os.Remove(fileIconPath)
+			if err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					return err
+				}
+			}
+		}
+		db.Delete(fileEntity)
 	}
-
-	// varrer diretorios dirs e verificar se no banca parentDirs que n foram encontrados, e apaga-los do banco
 	return nil
 }
 
@@ -114,33 +124,21 @@ func doGenerateIcon(fileEntity *models.File, fullPath string, db *gorm.DB) (bool
 	createdAt = int64(t.BirthTime().Unix())
 	updatedAt = int64(t.ModTime().Unix())
 
-	if fileEntity.CreatedAtUnix == createdAt && fileEntity.UpdatedAtUnix == updatedAt {
+	info, err := os.Stat(filepath.Join(config.AbsRootDir, *fileEntity.IconPath))
+	if errors.Is(err, os.ErrNotExist) || info == nil {
+		fileEntity.IconPath = nil
+	}
+
+	if fileEntity.IconPath != nil && fileEntity.CreatedAtUnix == createdAt && fileEntity.UpdatedAtUnix == updatedAt {
 		return false, nil
 	}
+
 	fileEntity.CreatedAtUnix = createdAt
 	fileEntity.UpdatedAtUnix = updatedAt
+	fileEntity.SetGenerateIcon()
 	err = db.Save(&fileEntity).Error
 	if err != nil {
 		return false, err
 	}
-	return false, nil
-}
-
-func getGenerator(contentType string) (IconGenerator, bool) {
-	if videoTypeRegex.MatchString(contentType) {
-		return &generator.IconVideoGenerator{}, true
-	}
-	if audioTypeRegex.MatchString(contentType) {
-		return &generator.IconAudioGenerator{}, true
-	}
-	return nil, false
-
-}
-
-type IconGenerator interface {
-	Generate(filePath string, iconPath string) error
-}
-
-func generateIcon(filePath string, iconPath string, generator IconGenerator) error {
-	return generator.Generate(filePath, iconPath)
+	return true, nil
 }
