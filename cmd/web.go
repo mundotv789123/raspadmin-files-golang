@@ -5,7 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/database"
+	icongenerator "github.com/mundotv789123/raspadmin/jobs/icon_generator"
 	"github.com/mundotv789123/raspadmin/router"
+	"github.com/robfig/cron"
 	"github.com/urfave/cli/v3"
 )
 
@@ -13,9 +15,24 @@ var webCommand = cli.Command{
 	Name:   "web",
 	Usage:  "Start the web server",
 	Action: runWeb,
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "gen-thumbnail",
+			Usage: "Enable cron to generate file thumbnails",
+		},
+	},
 }
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
+	genThumb := cmd.Bool("gen-thumbnail")
+	if genThumb {
+		c := cron.New()
+		c.AddFunc("0 1 * * * *", func() {
+			icongenerator.RunGenerator()
+		})
+		c.Start()
+	}
+
 	_, err := database.OpenDbConnection()
 	if err != nil {
 		return err

@@ -11,6 +11,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
+	github.com/robfig/cron v1.2.0
 	github.com/urfave/cli/v3 v3.6.2
 	gorm.io/gorm v1.31.1
 )

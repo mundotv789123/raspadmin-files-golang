@@ -18,10 +18,10 @@ ENV GIN_MODE=release
 
 WORKDIR /app
 
-COPY --from=builder /app/build/raspadmin /app/raspadmin
+COPY --from=builder /app/build/raspadmin /usr/local/bin/raspadmin
 
 EXPOSE 8080
 
-RUN chmod +x /app/raspadmin
+RUN chmod +x /usr/local/bin/raspadmin
 
-CMD ["/app/raspadmin"]
+CMD ["raspadmin"]

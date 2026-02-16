@@ -1,8 +1,9 @@
 services:
   app:
     build: .
+    command: 'web --gen-thumbnail'
     image: ghcr.io/mundotv789123/raspadmin-files-golang:latest
     ports:
       - "8080:8080"
     volumes:
-      - ./files:/app/files
+      - ./data:/app

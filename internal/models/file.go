@@ -49,6 +49,7 @@ func (file *File) SetGenerateIcon() error {
 	}
 	file.GenerateIcon = true
 	file.IconPath = nil
+	return nil
 }
 
 func (file *File) SetIconPath(iconPath *string) {
