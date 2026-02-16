@@ -1,5 +1,14 @@
 package models
 
+import (
+	"errors"
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/mundotv789123/raspadmin/internal/config"
+)
+
 type File struct {
 	Id uint `gorm:"primaryKey;column:id"`
 
@@ -27,7 +36,17 @@ func NewFile(name string, filePath string, parentPath *string) *File {
 	}
 }
 
-func (file *File) SetGenerateIcon() {
+func (file *File) SetGenerateIcon() error {
+	if file.IconPath != nil && *file.IconPath != "" {
+		fileIconPath := filepath.Join(config.AbsRootDir, *file.IconPath)
+		log.Printf("delete icon from cache %s", fileIconPath)
+		err := os.Remove(fileIconPath)
+		if err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
+	}
 	file.GenerateIcon = true
 	file.IconPath = nil
 }

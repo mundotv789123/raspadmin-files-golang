@@ -1,6 +1,9 @@
 package generator
 
 import (
+	"errors"
+	"fmt"
+	"os"
 	"os/exec"
 )
 
@@ -13,6 +16,19 @@ func (g *IconEmbedGenerator) Generate(filePath string, iconPath string) (bool, e
 	err := cmd.Run()
 
 	if err != nil {
+		// Tratar quando for erro de stream, assumir que o vídeo não contem imagem
+		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 234 {
+			return false, nil
+		}
+		cmdOut, _ := cmd.Output()
+		return false, fmt.Errorf("%s\n%s", err, string(cmdOut))
+	}
+
+	_, err = os.Stat(iconPath)
+	if err != nil {
+		if errors.Is(os.ErrNotExist, err) {
+			return false, nil
+		}
 		return false, err
 	}
 	return true, nil

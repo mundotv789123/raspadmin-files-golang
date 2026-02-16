@@ -1,6 +1,11 @@
 package generator
 
-import "os/exec"
+import (
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+)
 
 type IconVideoGenerator struct {
 	next IconGenerator
@@ -16,9 +21,17 @@ func (g *IconVideoGenerator) Generate(filePath string, iconPath string) (bool, e
 	err = cmd.Run()
 
 	if err != nil {
-		return false, err
+		cmdOut, _ := cmd.Output()
+		return false, fmt.Errorf("%s\n%s", err, string(cmdOut))
 	}
 
+	_, err = os.Stat(iconPath)
+	if err != nil {
+		if errors.Is(os.ErrNotExist, err) {
+			return false, nil
+		}
+		return false, err
+	}
 	return true, nil
 }
 
