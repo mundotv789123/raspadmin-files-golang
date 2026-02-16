@@ -20,7 +20,8 @@ var (
 	AppUsername string
 	AppPassword string
 
-	CacheDir string
+	CacheDir    string
+	CacheDirAds string
 
 	DbFile string
 )
@@ -82,6 +83,7 @@ func loadCache() {
 	if CacheDir == "" {
 		CacheDir = "_cache"
 	}
+	CacheDirAds, _ = filepath.Abs(filepath.Join(AbsRootDir, CacheDir))
 }
 
 func loadDatabase() {

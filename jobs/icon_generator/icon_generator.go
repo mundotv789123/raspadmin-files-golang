@@ -7,6 +7,7 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/djherbis/times"
 	"github.com/google/uuid"
@@ -39,6 +40,10 @@ func processFile(path string, db *gorm.DB) error {
 		fullPath := filepath.Join(config.AbsRootDir, filePath)
 
 		if file.IsDir() {
+			if strings.HasPrefix(fullPath, config.CacheDirAds) {
+				log.Print("cache dir is ignored")
+				continue
+			}
 			err := processFile(fullPath, db)
 
 			if err != nil {
