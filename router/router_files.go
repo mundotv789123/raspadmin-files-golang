@@ -47,6 +47,10 @@ func GetFiles(path string, db *gorm.DB) ([]dto.FileDto, error) {
 	filesList := make([]dto.FileDto, 0)
 	parentPath := path[len(config.AbsRootDir):]
 
+	if parentPath == "" {
+		parentPath = "/"
+	}
+
 	filesDb, err := repository.GetFilesMapFromParentPath(db, parentPath)
 	if err != nil {
 		return nil, err

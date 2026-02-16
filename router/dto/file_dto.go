@@ -34,7 +34,7 @@ func NewFileDto(file os.FileInfo, path string, open bool, iconPath string, fullP
 	return FileDto{
 		Name:      file.Name(),
 		IsDir:     file.IsDir(),
-		Path:      "/" + path,
+		Path:      path,
 		Type:      contentType,
 		Icon:      iconPath,
 		CreatedAt: createdAt,
