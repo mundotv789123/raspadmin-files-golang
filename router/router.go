@@ -31,10 +31,10 @@ func (ctx *WebContext) Files(c *gin.Context) {
 	filesResult, err := GetFiles(c.Query("path"), ctx.DB)
 	if err != nil {
 		if err == ErrFileNotFound {
-			c.JSON(404, gin.H{"message": ErrFileNotFound})
+			c.JSON(404, gin.H{"message": ErrFileNotFound.Error()})
 			return
 		}
-		c.JSON(500, gin.H{"message": ErrInternalServerError})
+		c.JSON(500, gin.H{"message": ErrInternalServerError.Error()})
 		return
 	}
 	c.JSON(200, gin.H{"files": filesResult})

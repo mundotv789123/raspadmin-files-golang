@@ -1,8 +1,12 @@
 services:
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend
     command: 'raspadmin web --gen-thumbnail'
-    image: ghcr.io/mundotv789123/raspadmin-files-golang:latest
+    image: ghcr.io/mundotv789123/raspadmin-files-golang:frontend
+    environment:
+      - DB_FILE=/app/data/database.db?_pragma=journal_mode(WAL)
     ports:
       - "8080:8080"
     volumes:
