@@ -85,8 +85,8 @@ func loadCache() {
 }
 
 func loadDatabase() {
-	CacheDir = os.Getenv("DB_FILE")
-	if CacheDir == "" {
-		CacheDir = "database.db"
+	DbFile = os.Getenv("DB_FILE")
+	if DbFile == "" {
+		DbFile = "database.db"
 	}
 }

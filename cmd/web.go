@@ -2,6 +2,7 @@ package cmd
 
 import (
 	ctx "context"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/database"
@@ -23,19 +24,27 @@ var webCommand = cli.Command{
 	},
 }
 
+var cronIsRunning = false
+
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
+	_, err := database.OpenDbConnection()
+	if err != nil {
+		return err
+	}
+
 	genThumb := cmd.Bool("gen-thumbnail")
 	if genThumb {
 		c := cron.New()
 		c.AddFunc("0 1 * * * *", func() {
-			icongenerator.RunGenerator()
+			defer func() { cronIsRunning = false }()
+			if !cronIsRunning {
+				cronIsRunning = true
+				icongenerator.RunGenerator()
+			} else {
+				log.Print("cron is running, ignoring...")
+			}
 		})
 		c.Start()
-	}
-
-	_, err := database.OpenDbConnection()
-	if err != nil {
-		return err
 	}
 
 	r := gin.Default()
