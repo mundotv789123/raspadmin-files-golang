@@ -95,6 +95,11 @@ func OpenFile(c *gin.Context) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		c.JSON(404, gin.H{"message": err.Error()})
+		return
+	}
+	if file == nil {
+		c.JSON(404, gin.H{"message": ErrFileNotFound})
+		return
 	}
 	defer file.Close()
 
