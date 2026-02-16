@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/glebarez/sqlite"
+	"github.com/mundotv789123/raspadmin/internal/config"
 	"github.com/mundotv789123/raspadmin/internal/models"
 	"gorm.io/gorm"
 )
@@ -9,7 +10,7 @@ import (
 var DB *gorm.DB
 
 func OpenDbConnection() (*gorm.DB, error) {
-	sqliteConn := sqlite.Open("database.db")
+	sqliteConn := sqlite.Open(config.DbFile)
 	db, err := gorm.Open(sqliteConn, &gorm.Config{})
 	if err != nil {
 		return nil, err

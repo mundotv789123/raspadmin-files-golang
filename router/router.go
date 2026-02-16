@@ -2,6 +2,8 @@ package router
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/router/middleware"
@@ -15,6 +17,8 @@ var (
 type WebContext struct {
 	DB *gorm.DB
 }
+
+const PUBLIC_DIR = "./public"
 
 func Index(c *gin.Context) {
 	respose := gin.H{
@@ -42,6 +46,7 @@ func (ctx *WebContext) AuthLogin(c *gin.Context) {
 
 func (ctx *WebContext) Routers(r *gin.Engine) {
 	r.Use(middleware.CorsMiddleware())
+	loadPublicDir(r)
 
 	apiRouter := r.Group("/api")
 
@@ -54,4 +59,19 @@ func (ctx *WebContext) Routers(r *gin.Engine) {
 
 	authRouter := apiRouter.Group("/auth")
 	authRouter.POST("/login", ctx.AuthLogin)
+}
+
+func loadPublicDir(r *gin.Engine) {
+	if files, err := os.ReadDir(PUBLIC_DIR); err == nil {
+		for _, file := range files {
+			fileName := file.Name()
+			if fileName == "index.html" {
+				r.GET("", func(c *gin.Context) {
+					c.File(filepath.Join(PUBLIC_DIR, fileName))
+				})
+				continue
+			}
+			r.Static(fileName, filepath.Join(PUBLIC_DIR, fileName))
+		}
+	}
 }

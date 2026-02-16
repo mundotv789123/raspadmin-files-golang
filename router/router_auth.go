@@ -48,9 +48,9 @@ func AuthLogin(c *gin.Context, db *gorm.DB) {
 	if err != nil {
 		switch err {
 		case ErrInvalidToken, ErrInvalidUsernameOrPassword:
-			c.JSON(401, gin.H{"message": err})
+			c.JSON(401, gin.H{"message": err.Error()})
 		default:
-			c.JSON(401, gin.H{"message": ErrInternalServerError})
+			c.JSON(401, gin.H{"message": ErrInternalServerError.Error()})
 		}
 		return
 	}
@@ -58,7 +58,7 @@ func AuthLogin(c *gin.Context, db *gorm.DB) {
 	session.SetRefreshToken(uuid.New().String(), refreshTokenExpireInMinutes)
 	err = db.Save(session).Error
 	if err != nil {
-		c.JSON(500, gin.H{"message": ErrInternalServerError})
+		c.JSON(500, gin.H{"message": ErrInternalServerError.Error()})
 		return
 	}
 
@@ -70,7 +70,7 @@ func AuthLogin(c *gin.Context, db *gorm.DB) {
 
 	token, err := ijwt.CreateJWTToken(claims)
 	if err != nil {
-		c.JSON(500, gin.H{"message": ErrInternalServerError})
+		c.JSON(500, gin.H{"message": ErrInternalServerError.Error()})
 		return
 	}
 
@@ -82,7 +82,7 @@ func AuthLogin(c *gin.Context, db *gorm.DB) {
 
 	refreshToken, err := ijwt.CreateJWTToken(refreshTokenClaims)
 	if err != nil {
-		c.JSON(500, gin.H{"message": ErrInternalServerError})
+		c.JSON(500, gin.H{"message": ErrInternalServerError.Error()})
 		return
 	}
 

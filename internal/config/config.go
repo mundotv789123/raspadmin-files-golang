@@ -21,6 +21,8 @@ var (
 	AppPassword string
 
 	CacheDir string
+
+	DbFile string
 )
 
 func Init() {
@@ -28,6 +30,7 @@ func Init() {
 	loadCors()
 	loadAuth()
 	loadCache()
+	loadDatabase()
 }
 
 func loadRootDir() {
@@ -78,5 +81,12 @@ func loadCache() {
 	CacheDir = os.Getenv("CACHE_DIR")
 	if CacheDir == "" {
 		CacheDir = "_cache"
+	}
+}
+
+func loadDatabase() {
+	CacheDir = os.Getenv("DB_FILE")
+	if CacheDir == "" {
+		CacheDir = "database.db"
 	}
 }

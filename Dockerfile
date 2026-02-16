@@ -16,6 +16,9 @@ RUN apk update && apk add ffmpeg ffmpegthumbnailer
 
 ENV GIN_MODE=release
 
+ENV DB_FILE=data/database.db
+RUN mkdir -p /app/data
+
 WORKDIR /app
 
 COPY --from=builder /app/build/raspadmin /usr/local/bin/raspadmin

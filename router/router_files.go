@@ -86,10 +86,10 @@ func OpenFile(c *gin.Context) {
 	filePath, err := system.SafeJoinPath(c.Query("path"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			c.JSON(404, gin.H{"message": ErrFileNotFound})
+			c.JSON(404, gin.H{"message": ErrFileNotFound.Error()})
 			return
 		}
-		c.JSON(500, gin.H{"message": ErrInternalServerError})
+		c.JSON(500, gin.H{"message": ErrInternalServerError.Error()})
 		return
 	}
 	file, err := os.Open(filePath)
@@ -98,7 +98,7 @@ func OpenFile(c *gin.Context) {
 		return
 	}
 	if file == nil {
-		c.JSON(404, gin.H{"message": ErrFileNotFound})
+		c.JSON(404, gin.H{"message": ErrFileNotFound.Error()})
 		return
 	}
 	defer file.Close()
