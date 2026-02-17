@@ -1,5 +1,0 @@
-FROM ghcr.io/mundotv789123/raspadmin-files-golang
-
-WORKDIR /app
-
-COPY ./public /app/public

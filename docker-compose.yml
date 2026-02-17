@@ -1,10 +1,7 @@
 services:
   app:
-    build: 
-      context: .
-      dockerfile: Dockerfile.frontend
     command: 'raspadmin web --gen-thumbnail'
-    image: ghcr.io/mundotv789123/raspadmin-files-golang:frontend
+    image: ghcr.io/mundotv789123/raspadmin-files-golang
     environment:
       - DB_FILE=/app/data/database.db?_pragma=journal_mode(WAL)
     ports:
