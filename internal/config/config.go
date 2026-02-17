@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +36,7 @@ func Init() {
 
 func loadRootDir() {
 	if err := godotenv.Load(".env"); err != nil {
-		log.Print("Error loading .env file: ", err)
+		slog.Warn("Error loading .env file: ", err)
 	}
 
 	rootDir := os.Getenv("FILES_PATH")

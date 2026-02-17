@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -39,7 +39,7 @@ func NewFile(name string, filePath string, parentPath *string) *File {
 func (file *File) SetGenerateIcon() error {
 	if file.IconPath != nil && *file.IconPath != "" {
 		fileIconPath := filepath.Join(config.AbsRootDir, *file.IconPath)
-		log.Printf("delete icon from cache %s", fileIconPath)
+		slog.Info("delete icon from cache %s", fileIconPath)
 		err := os.Remove(fileIconPath)
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {

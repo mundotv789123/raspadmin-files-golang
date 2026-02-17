@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/urfave/cli/v3"
@@ -20,6 +20,6 @@ func Run() {
 		DefaultCommand: webCommand.Name,
 	}
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatalf("%s", err)
+		slog.Error("%s", err)
 	}
 }

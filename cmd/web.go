@@ -2,7 +2,7 @@ package cmd
 
 import (
 	ctx "context"
-	"log"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/database"
@@ -41,7 +41,7 @@ func runWeb(_ ctx.Context, cmd *cli.Command) error {
 				cronIsRunning = true
 				icongenerator.RunGenerator()
 			} else {
-				log.Print("cron is running, ignoring...")
+				slog.Warn("cron is running, ignoring...")
 			}
 		})
 		c.Start()

@@ -3,7 +3,7 @@ package icongenerator
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"mime"
 	"os"
 	"path/filepath"
@@ -20,12 +20,16 @@ import (
 )
 
 func RunGenerator() error {
-	log.Print("starting files process")
-	return processFile(config.AbsRootDir, database.DB)
+	slog.Info("starting files process")
+	if err := processFile(config.AbsRootDir, database.DB); err != nil {
+		return err
+	}
+	slog.Info("files process finished")
+	return nil
 }
 
 func processFile(path string, db *gorm.DB) error {
-	log.Printf("reading dir %s", path)
+	slog.Debug("reading dir %s", path)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("error process file: %s, %s", err, path)
@@ -33,7 +37,7 @@ func processFile(path string, db *gorm.DB) error {
 
 	parentPath := path[len(config.AbsRootDir):]
 	filesDb, err := repository.GetFilesMapFromParentPath(db, parentPath)
-	log.Printf("%d file(s) were found in the database.", len(filesDb))
+	slog.Debug("%d file(s) were found in the database.", len(filesDb))
 
 	for _, file := range files {
 		filePath := filepath.Join(parentPath, file.Name())
@@ -41,7 +45,6 @@ func processFile(path string, db *gorm.DB) error {
 
 		if file.IsDir() {
 			if strings.HasPrefix(fullPath, config.CacheDirAds) {
-				log.Print("cache dir is ignored")
 				continue
 			}
 			err := processFile(fullPath, db)
@@ -55,10 +58,10 @@ func processFile(path string, db *gorm.DB) error {
 		fileEntity, exists := filesDb[file.Name()]
 		if !exists {
 			fileEntity = *models.NewFile(file.Name(), filePath, &parentPath)
-			log.Printf("file %s will be created in the database.", filePath)
+			slog.Info("file %s will be created in the database.", filePath)
 		} else {
 			delete(filesDb, file.Name())
-			log.Printf("file %s already exists.", filePath)
+			slog.Debug("file %s already exists.", filePath) //
 		}
 
 		if err := db.Save(&fileEntity).Error; err != nil {
@@ -68,7 +71,7 @@ func processFile(path string, db *gorm.DB) error {
 		contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
 		gen, ok := generator.GetGenerator(contentType)
 		if !ok {
-			log.Printf("no generator found to file %s.", contentType)
+			slog.Debug("no generator found to file %s.", contentType)
 			continue
 		}
 
@@ -78,7 +81,6 @@ func processFile(path string, db *gorm.DB) error {
 		}
 
 		if !ok {
-			log.Printf("file %s mark to no generate icon", fullPath)
 			continue
 		}
 		if fileEntity.IconPath == nil {
@@ -87,17 +89,19 @@ func processFile(path string, db *gorm.DB) error {
 		}
 
 		iconFullPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
-		log.Printf("generating icon to file %s saving in %s", fullPath, iconFullPath)
+		slog.Info("generating icon to file %s saving in %s", fullPath, iconFullPath)
 		ok, err = generator.GenerateIcon(fullPath, iconFullPath, gen)
 
 		if err != nil {
 			return fmt.Errorf("error save file generate icon: %s, (%s, %s)", err, fullPath, path)
 		}
-		if !ok {
-			log.Printf("icon %s was not generated", iconFullPath)
-			continue
+
+		if ok {
+			fileEntity.SetIconPath(fileEntity.IconPath)
+		} else {
+			slog.Info("icon %s was not generated", iconFullPath)
+			fileEntity.SetIconPath(nil)
 		}
-		fileEntity.SetIconPath(fileEntity.IconPath)
 
 		if err = db.Save(&fileEntity).Error; err != nil {
 			return fmt.Errorf("error save file in db %s, %s", file.Name(), path)
@@ -106,7 +110,7 @@ func processFile(path string, db *gorm.DB) error {
 	for _, fileEntity := range filesDb {
 		if fileEntity.IconPath != nil && *fileEntity.IconPath != "" {
 			fileIconPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
-			log.Printf("delete icon from cache %s", fileIconPath)
+			slog.Info("delete icon from cache %s", fileIconPath)
 			err := os.Remove(fileIconPath)
 			if err != nil {
 				if !errors.Is(err, os.ErrNotExist) {
@@ -114,7 +118,7 @@ func processFile(path string, db *gorm.DB) error {
 				}
 			}
 		}
-		log.Printf("file deleted from database %s", fileEntity.FilePath)
+		slog.Info("file deleted from database %s", fileEntity.FilePath)
 		db.Delete(fileEntity)
 	}
 	return nil
