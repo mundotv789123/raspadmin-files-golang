@@ -71,7 +71,11 @@ func loadPublicDir(r *gin.Engine) {
 				})
 				continue
 			}
-			r.Static(fileName, filepath.Join(PUBLIC_DIR, fileName))
+			if file.IsDir() {
+				r.Static(fileName, filepath.Join(PUBLIC_DIR, fileName))
+			} else {
+				r.StaticFile(fileName, filepath.Join(PUBLIC_DIR, fileName))
+			}
 		}
 	}
 }
