@@ -17,6 +17,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up environment docker tag
+        id: set_env
+        run: |
+          if [[ "${{ github.ref_name }}" == "develop" ]]; then
+            echo "DOCKER_IMAGE_TAG=${{ env.DOCKER_IMAGE_TAG }}:dev" >> $GITHUB_ENV
+          fi
+
       - name: Docker metadata
         id: docker_meta
         uses: docker/metadata-action@v5
