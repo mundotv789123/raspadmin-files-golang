@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 env:
   DOCKER_IMAGE_TAG: ghcr.io/mundotv789123/raspadmin-files-golang
