@@ -23,18 +23,6 @@ jobs:
           if [[ "${{ github.ref_name }}" == "develop" ]]; then
             echo "DOCKER_IMAGE_TAG=${{ env.DOCKER_IMAGE_TAG }}:dev" >> $GITHUB_ENV
           fi
-
-      - name: Docker metadata
-        id: docker_meta
-        uses: docker/metadata-action@v5
-        with:
-          images: "${{ env.DOCKER_IMAGE_TAG }}"
-          flavor: |
-            latest=false
-          tags: |
-            type=raw,value=latest,enable=true
-            type=ref,event=tag
-            type=ref,event=branch
     
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -56,6 +44,4 @@ jobs:
           context: .
           push: true
           tags: "${{ env.DOCKER_IMAGE_TAG }}"
-          platforms: linux/amd64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
