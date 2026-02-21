@@ -47,10 +47,6 @@ jobs:
           cache-dependency-path: |
             subdir/go.sum
             tools/go.sum
-
-      - name: go download
-        run: go mod download
-
       - name: build amd64
         run: GIN_MODE=release GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build/raspadmin main.go
 
@@ -78,10 +74,6 @@ jobs:
           cache-dependency-path: |
             subdir/go.sum
             tools/go.sum
-
-      - name: go download
-        run: go mod download
-
       - name: build arm64
         run: GIN_MODE=release GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o build/raspadmin main.go
 
