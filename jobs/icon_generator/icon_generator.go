@@ -29,7 +29,7 @@ func RunGenerator() error {
 }
 
 func processFile(path string, db *gorm.DB) error {
-	slog.Debug("reading dir %s", path)
+	slog.Debug(fmt.Sprintf("reading dir %s", path))
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("error process file: %s, %s", err, path)
@@ -37,7 +37,7 @@ func processFile(path string, db *gorm.DB) error {
 
 	parentPath := path[len(config.AbsRootDir):]
 	filesDb, err := repository.GetFilesMapFromParentPath(db, parentPath)
-	slog.Debug("%d file(s) were found in the database.", len(filesDb))
+	slog.Debug(fmt.Sprintf("%d file(s) were found in the database.", len(filesDb)))
 
 	for _, file := range files {
 		filePath := filepath.Join(parentPath, file.Name())
@@ -58,10 +58,10 @@ func processFile(path string, db *gorm.DB) error {
 		fileEntity, exists := filesDb[file.Name()]
 		if !exists {
 			fileEntity = *models.NewFile(file.Name(), filePath, &parentPath)
-			slog.Info("file %s will be created in the database.", filePath)
+			slog.Info(fmt.Sprintf("file %s will be created in the database.", filePath))
 		} else {
 			delete(filesDb, file.Name())
-			slog.Debug("file %s already exists.", filePath) //
+			slog.Debug(fmt.Sprintf("file %s already exists.", filePath))
 		}
 
 		if err := db.Save(&fileEntity).Error; err != nil {
@@ -71,7 +71,7 @@ func processFile(path string, db *gorm.DB) error {
 		contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
 		gen, ok := generator.GetGenerator(contentType)
 		if !ok {
-			slog.Debug("no generator found to file %s.", contentType)
+			slog.Debug(fmt.Sprintf("no generator found to file %s.", contentType))
 			continue
 		}
 
@@ -89,7 +89,7 @@ func processFile(path string, db *gorm.DB) error {
 		}
 
 		iconFullPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
-		slog.Info("generating icon to file %s saving in %s", fullPath, iconFullPath)
+		slog.Info(fmt.Sprintf("generating icon to file %s saving in %s", fullPath, iconFullPath))
 		ok, err = generator.GenerateIcon(fullPath, iconFullPath, gen)
 
 		if err != nil {
@@ -99,7 +99,7 @@ func processFile(path string, db *gorm.DB) error {
 		if ok {
 			fileEntity.SetIconPath(fileEntity.IconPath)
 		} else {
-			slog.Info("icon %s was not generated", iconFullPath)
+			slog.Info(fmt.Sprintf("icon %s was not generated", iconFullPath))
 			fileEntity.SetIconPath(nil)
 		}
 
@@ -110,7 +110,7 @@ func processFile(path string, db *gorm.DB) error {
 	for _, fileEntity := range filesDb {
 		if fileEntity.IconPath != nil && *fileEntity.IconPath != "" {
 			fileIconPath := filepath.Join(config.AbsRootDir, *fileEntity.IconPath)
-			slog.Info("delete icon from cache %s", fileIconPath)
+			slog.Info(fmt.Sprintf("delete icon from cache %s", fileIconPath))
 			err := os.Remove(fileIconPath)
 			if err != nil {
 				if !errors.Is(err, os.ErrNotExist) {
@@ -118,7 +118,7 @@ func processFile(path string, db *gorm.DB) error {
 				}
 			}
 		}
-		slog.Info("file deleted from database %s", fileEntity.FilePath)
+		slog.Info(fmt.Sprintf("file deleted from database %s", fileEntity.FilePath))
 		db.Delete(fileEntity)
 	}
 	return nil

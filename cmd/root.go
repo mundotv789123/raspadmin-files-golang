@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -20,6 +21,6 @@ func Run() {
 		DefaultCommand: webCommand.Name,
 	}
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		slog.Error("%s", err)
+		slog.Error(fmt.Sprintf("%s", err))
 	}
 }
