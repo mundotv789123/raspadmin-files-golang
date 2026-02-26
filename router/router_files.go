@@ -4,17 +4,15 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/config"
+	"github.com/mundotv789123/raspadmin/internal/validations"
 	"github.com/mundotv789123/raspadmin/repository"
 	"github.com/mundotv789123/raspadmin/router/dto"
 	"github.com/mundotv789123/raspadmin/router/system"
 	"gorm.io/gorm"
 )
-
-var hiddenFilesRegex = regexp.MustCompile(`^[\._].*$`)
 
 var (
 	ErrFileNotFound = errors.New("File or directory not found")
@@ -57,7 +55,7 @@ func GetFiles(path string, db *gorm.DB) ([]dto.FileDto, error) {
 	}
 
 	for _, file := range files {
-		if hiddenFilesRegex.MatchString(file.Name()) {
+		if validations.IsHiddenFile(file.Name()) {
 			continue
 		}
 
