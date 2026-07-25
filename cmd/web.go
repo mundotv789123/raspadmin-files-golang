@@ -2,13 +2,11 @@ package cmd
 
 import (
 	ctx "context"
-	"log/slog"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mundotv789123/raspadmin/internal/database"
 	icongenerator "github.com/mundotv789123/raspadmin/jobs/icon_generator"
 	"github.com/mundotv789123/raspadmin/router"
-	"github.com/robfig/cron"
 	"github.com/urfave/cli/v3"
 )
 
@@ -19,12 +17,10 @@ var webCommand = cli.Command{
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "gen-thumbnail",
-			Usage: "Enable cron to generate file thumbnails",
+			Usage: "Enable background service to generate file thumbnails",
 		},
 	},
 }
-
-var cronIsRunning = false
 
 func runWeb(_ ctx.Context, cmd *cli.Command) error {
 	_, err := database.OpenDbConnection()
@@ -34,17 +30,7 @@ func runWeb(_ ctx.Context, cmd *cli.Command) error {
 
 	genThumb := cmd.Bool("gen-thumbnail")
 	if genThumb {
-		c := cron.New()
-		c.AddFunc("0 1 * * * *", func() {
-			defer func() { cronIsRunning = false }()
-			if !cronIsRunning {
-				cronIsRunning = true
-				icongenerator.RunGenerator()
-			} else {
-				slog.Warn("cron is running, ignoring...")
-			}
-		})
-		c.Start()
+		icongenerator.StartBackgroundService()
 	}
 
 	r := gin.Default()
@@ -54,3 +40,4 @@ func runWeb(_ ctx.Context, cmd *cli.Command) error {
 
 	return r.Run("0.0.0.0:8080")
 }
+

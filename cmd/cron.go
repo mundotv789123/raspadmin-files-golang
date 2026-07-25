@@ -10,7 +10,7 @@ import (
 
 var cronCommand = cli.Command{
 	Name:   "cron",
-	Usage:  "Start the cron job",
+	Usage:  "Start the icon generator background service",
 	Action: runCron,
 }
 
@@ -19,9 +19,7 @@ func runCron(_ context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	erro := icongenerator.RunGenerator()
-	if erro != nil {
-		return erro
-	}
-	return nil
+	icongenerator.StartBackgroundService()
+	select {}
 }
+
