@@ -133,14 +133,14 @@ func ProcessSingleFile(fullPath string) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			fileEntity = models.NewFile(fileName, relPath, &parentPath)
 			slog.Info(fmt.Sprintf("file %s will be created in database.", relPath))
+			if err := db.Create(fileEntity).Error; err != nil {
+				return fmt.Errorf("error save file in db: %w", err)
+			}
 		} else {
 			return err
 		}
 	}
 
-	if err := db.Save(fileEntity).Error; err != nil {
-		return fmt.Errorf("error save file in db: %w", err)
-	}
 
 	contentType := mime.TypeByExtension(filepath.Ext(fileName))
 	gen, ok := generator.GetGenerator(contentType)
@@ -212,15 +212,15 @@ func processFile(path string, db *gorm.DB) error {
 		if !exists {
 			fileEntity = *models.NewFile(file.Name(), filePath, &parentPath)
 			slog.Info(fmt.Sprintf("file %s will be created in the database.", filePath))
+			if err := db.Create(&fileEntity).Error; err != nil {
+				unlock()
+				return fmt.Errorf("error save file in db: %s (%s, %s)", err, file.Name(), path)
+			}
 		} else {
 			delete(filesDb, file.Name())
 			slog.Debug(fmt.Sprintf("file %s already exists.", filePath))
 		}
 
-		if err := db.Save(&fileEntity).Error; err != nil {
-			unlock()
-			return fmt.Errorf("error save file in db: %s (%s, %s)", err, file.Name(), path)
-		}
 
 		contentType := mime.TypeByExtension(filepath.Ext(file.Name()))
 		gen, ok := generator.GetGenerator(contentType)

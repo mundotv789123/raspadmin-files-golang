@@ -22,7 +22,8 @@ type File struct {
 	IconPath     *string `gorm:"column:icon_path"`
 
 	FilePath   string  `gorm:"not null;column:file_path;uniqueIndex"`
-	ParentPath *string `gorm:"column:parent_path"`
+	ParentPath *string `gorm:"column:parent_path;index"`
+
 
 	UpdatedAtUnix int64 `gorm:"column:updated_at;autoCreateTime"`
 	CreatedAtUnix int64 `gorm:"column:created_at;autoCreateTime"`
