@@ -19,3 +19,13 @@ func GetFilesMapFromParentPath(db *gorm.DB, parentPath string) (map[string]model
 
 	return filesMap, nil
 }
+
+func GetFileFromPath(db *gorm.DB, filePath string) (*models.File, error) {
+	var file models.File
+	err := db.Where("file_path = ?", filePath).First(&file).Error
+	if err != nil {
+		return nil, err
+	}
+	return &file, nil
+}
+
