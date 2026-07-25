@@ -15,6 +15,47 @@ import (
 
 type FileHandlerFunc func(filePath string)
 
+type EventQueueWorker struct {
+	queue   chan string
+	handler FileHandlerFunc
+	set     map[string]bool
+	mu      sync.Mutex
+}
+
+func NewEventQueueWorker(bufferSize int, handler FileHandlerFunc) *EventQueueWorker {
+	qw := &EventQueueWorker{
+		queue:   make(chan string, bufferSize),
+		handler: handler,
+		set:     make(map[string]bool),
+	}
+	go qw.start()
+	return qw
+}
+
+func (qw *EventQueueWorker) Push(filePath string) {
+	qw.mu.Lock()
+	if qw.set[filePath] {
+		qw.mu.Unlock()
+		return
+	}
+	qw.set[filePath] = true
+	qw.mu.Unlock()
+
+	qw.queue <- filePath
+}
+
+func (qw *EventQueueWorker) start() {
+	for filePath := range qw.queue {
+		qw.mu.Lock()
+		delete(qw.set, filePath)
+		qw.mu.Unlock()
+
+		if qw.handler != nil {
+			qw.handler(filePath)
+		}
+	}
+}
+
 type FileDebouncer struct {
 	mu      sync.Mutex
 	timers  map[string]*time.Timer
@@ -67,11 +108,11 @@ func InitWatch(path string, handler FileHandlerFunc) {
 }
 
 func watch(watcher *rfsnotify.RWatcher, handler FileHandlerFunc) {
+	queueWorker := NewEventQueueWorker(10000, handler)
+
 	debouncer := NewFileDebouncer(15*time.Second, func(filePath string) {
-		slog.Info(fmt.Sprintf("debounced timer expired, processing file: %s", filePath))
-		if handler != nil {
-			handler(filePath)
-		}
+		slog.Info(fmt.Sprintf("debounced timer expired, queuing file: %s", filePath))
+		queueWorker.Push(filePath)
 	})
 
 	for {
@@ -103,4 +144,5 @@ func watch(watcher *rfsnotify.RWatcher, handler FileHandlerFunc) {
 		}
 	}
 }
+
 

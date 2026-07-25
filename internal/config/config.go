@@ -37,7 +37,8 @@ func Init() {
 
 func loadRootDir() {
 	if err := godotenv.Load(".env"); err != nil {
-		slog.Warn(fmt.Sprintf("Error loading .env file: ", err))
+		slog.Warn(fmt.Sprintf("Error loading .env file: %v", err))
+
 	}
 
 	rootDir := os.Getenv("FILES_PATH")
@@ -85,7 +86,11 @@ func loadCache() {
 		CacheDir = "_cache"
 	}
 	CacheDirAds, _ = filepath.Abs(filepath.Join(AbsRootDir, CacheDir))
+	if err := os.MkdirAll(CacheDirAds, os.ModePerm); err != nil {
+		slog.Error(fmt.Sprintf("error creating cache directory %s: %v", CacheDirAds, err))
+	}
 }
+
 
 func loadDatabase() {
 	DbFile = os.Getenv("DB_FILE")

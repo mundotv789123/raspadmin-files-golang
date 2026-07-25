@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -15,8 +17,12 @@ type IconGenerator interface {
 }
 
 func GenerateIcon(filePath string, iconPath string, generator IconGenerator) (bool, error) {
+	if err := os.MkdirAll(filepath.Dir(iconPath), os.ModePerm); err != nil {
+		return false, err
+	}
 	return generator.Generate(filePath, iconPath)
 }
+
 
 func GetGenerator(contentType string) (IconGenerator, bool) {
 	if videoTypeRegex.MatchString(contentType) {

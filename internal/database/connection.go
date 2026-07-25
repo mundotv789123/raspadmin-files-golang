@@ -16,6 +16,12 @@ func OpenDbConnection() (*gorm.DB, error) {
 		return nil, err
 	}
 
+	// Optimize SQLite performance for concurrent writes
+	db.Exec("PRAGMA journal_mode=WAL;")
+	db.Exec("PRAGMA synchronous=NORMAL;")
+	db.Exec("PRAGMA busy_timeout=5000;")
+	db.Exec("PRAGMA cache_size=-64000;")
+
 	err = runMigrations(db)
 	if err != nil {
 		return nil, err
@@ -24,6 +30,7 @@ func OpenDbConnection() (*gorm.DB, error) {
 	DB = db
 	return db, nil
 }
+
 
 func runMigrations(db *gorm.DB) error {
 	migrations := []any{
